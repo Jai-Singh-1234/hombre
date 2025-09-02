@@ -33,6 +33,12 @@
   --error: #dc2626;
   --warning: #f59e0b;
   --info: #3b82f6;
+
+  /* Card Background */
+  --card-bg: #fff;
+
+  /* Popover Background */
+  --popover-bg: #fff;
 }
 
 /* Dark Mode Variables */
@@ -63,6 +69,12 @@
   --error: #f87171;
   --warning: #fbbf24;
   --info: #60a5fa;
+
+  /* Card Background */
+  --card-bg: #111;
+
+  /* Popover Background */
+  --popover-bg: #111;
 }
 
 /* Apply CSS Variables to Elements */
@@ -432,119 +444,129 @@ textarea:focus {
   color: var(--foreground);
 }
 
-/* ===========================
-   Translator icon + dropdown styles
-   =========================== */
-.translate-wrapper {
+/* Hide Google Translate UI chrome by default and prevent layout shift */
+#google_translate_element {
+  position: fixed;
+  visibility: hidden;
+  left: -9999px;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Hide ribbon and tooltip */
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-te-spinner-pos,
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+
+/* Hide Google branding in the hidden gadget */
+.goog-logo-link,
+.goog-te-gadget-icon {
+  display: none !important;
+}
+
+/* Translator trigger next to theme switcher */
+.translator-wrapper {
   position: relative;
   display: inline-flex;
   align-items: center;
+  margin-left: 8px; /* sits to the right of theme switcher */
 }
 
-.translate-button {
+.translator-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
   width: 36px;
-  border-radius: 0.375rem;
-  border: 1px solid var(--border);
-  background-color: var(--background);
-  color: var(--foreground);
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--card-bg, #fff);
+  color: inherit;
   cursor: pointer;
 }
-
-.translate-button:hover {
-  background-color: var(--muted);
+.translator-trigger:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-.translate-menu {
+.translator-menu {
   position: absolute;
-  top: 110%;
+  top: calc(100% + 8px);
   right: 0;
   z-index: 1000;
-  width: 240px;
-  max-height: 300px;
+  min-width: 220px;
+  max-height: 320px;
   overflow: auto;
-  background-color: var(--background);
-  color: var(--foreground);
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--popover-bg, #fff);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   padding: 6px;
   display: none;
 }
-
-.translate-menu.open {
+.translator-menu.open {
   display: block;
-  animation: slideInUp 0.18s ease-out;
 }
 
-.translate-search {
+.translator-search {
   width: 100%;
-  border: 1px solid var(--input);
-  border-radius: 0.375rem;
-  background: var(--background);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  padding: 6px 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
   margin-bottom: 6px;
   outline: none;
 }
 
-.translate-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.translator-item {
   width: 100%;
   text-align: left;
   padding: 8px 10px;
-  border-radius: 0.375rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+}
+.translator-item:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.translate-item:hover,
-.translate-item[aria-current="true"] {
-  background-color: var(--muted);
+/* Dark mode safe defaults if you use theme variables */
+@media (prefers-color-scheme: dark) {
+  .translator-trigger {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: var(--card-bg, #111);
+  }
+  .translator-trigger:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .translator-menu {
+    background: var(--popover-bg, #111);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  .translator-search {
+    background: transparent;
+    color: inherit;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .translator-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
-.translate-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 6px 0;
+/* Optional: show GT ribbon without covering content
+   Toggle by adding attribute data-show-gt-banner="true" on <html>. */
+:root {
+  --gt-banner-height: 40px;
 }
-
-/* Hide legacy selects when JS enhances */
-.language-select {
-  display: none !important;
+html[data-show-gt-banner="true"] .goog-te-banner-frame.skiptranslate {
+  display: block !important;
 }
-
-/* Hide Google Translate banner/tooltip and keep layout stable */
-#google_translate_element {
-  display: none !important;
-}
-.goog-te-banner-frame.skiptranslate,
-.goog-te-banner-frame {
-  display: none !important;
-}
-.goog-te-gadget,
-.goog-te-gadget-simple,
-.goog-te-combo {
-  display: none !important;
-}
-#goog-gt-tt,
-.goog-te-balloon-frame,
-.goog-tooltip,
-.goog-tooltip:hover {
-  display: none !important;
-  visibility: hidden !important;
-}
-.goog-text-highlight {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-/* Google sets body { top: 40px } when banner is shown; force it back */
-html body {
-  top: 0 !important;
+html[data-show-gt-banner="true"] body {
+  padding-top: var(--gt-banner-height);
 }

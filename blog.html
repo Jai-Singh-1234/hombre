@@ -55,19 +55,27 @@
           <!-- Desktop Navigation -->
           <nav class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
-              <a href="index.html" class="navbar-link">Home</a>
-              <a href="about.html" class="navbar-link">About</a>
-              <a href="services.html" class="navbar-link">Services</a>
-              <a href="job-placement.html" class="navbar-link">Job Placement</a>
-              <a href="blog.html" class="navbar-link text-primary font-medium"
-                >Blog</a
-              >
-              <a href="contact.html" class="navbar-link">Contact</a>
+              <a href="index.html" class="navbar-link" data-i18n="nav.home">Home</a>
+              <a href="about.html" class="navbar-link" data-i18n="nav.about">About</a>
+              <a href="services.html" class="navbar-link" data-i18n="nav.services">Services</a>
+              <a href="job-placement.html" class="navbar-link" data-i18n="nav.job">Job Placement</a>
+              <a href="blog.html" class="navbar-link text-primary font-medium" data-i18n="nav.blog">Blog</a>
+              <a href="contact.html" class="navbar-link" data-i18n="nav.contact">Contact</a>
             </div>
           </nav>
 
           <!-- Theme Toggle & Mobile Menu Button -->
           <div class="flex items-center space-x-2">
+            <!-- Language Selector -->
+            <div class="hidden md:block">
+              <label class="sr-only" for="language-select">Language</label>
+              <select id="language-select" class="translate-select language-select" aria-label="Select language">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="pa">ਪੰਜਾਬੀ</option>
+              </select>
+            </div>
+
             <!-- Theme Toggle - Hidden on mobile, moved to mobile menu -->
             <button
               id="theme-toggle"
@@ -133,18 +141,25 @@
         <div
           class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700"
         >
-          <a href="index.html" class="mobile-navbar-link">Home</a>
-          <a href="about.html" class="mobile-navbar-link">About</a>
-          <a href="services.html" class="mobile-navbar-link">Services</a>
-          <a href="job-placement.html" class="mobile-navbar-link"
-            >Job Placement</a
-          >
+          <a href="index.html" class="mobile-navbar-link" data-i18n="nav.home">Home</a>
+          <a href="about.html" class="mobile-navbar-link" data-i18n="nav.about">About</a>
+          <a href="services.html" class="mobile-navbar-link" data-i18n="nav.services">Services</a>
+          <a href="job-placement.html" class="mobile-navbar-link" data-i18n="nav.job">Job Placement</a>
           <a
             href="blog.html"
-            class="mobile-navbar-link text-primary font-medium"
+            class="mobile-navbar-link text-primary font-medium" data-i18n="nav.blog"
             >Blog</a
           >
-          <a href="contact.html" class="mobile-navbar-link">Contact</a>
+          <a href="contact.html" class="mobile-navbar-link" data-i18n="nav.contact">Contact</a>
+          <!-- Language Selector -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
+            <label for="mobile-language-select" class="block text-sm text-gray-600 dark:text-gray-300 mb-2">Language</label>
+            <select id="mobile-language-select" class="translate-select w-full language-select" aria-label="Select language (mobile)">
+              <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+              <option value="pa">ਪੰਜਾਬੀ</option>
+            </select>
+          </div>
           <!-- Added theme toggle to mobile menu -->
           <div class="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
             <button
@@ -196,14 +211,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1
             class="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6"
+            data-i18n="blog.title"
           >
             Blog & Updates
           </h1>
           <p
             class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+            data-i18n="blog.subtitle"
           >
-            Weekly posts on care, staffing, and community updates. New
-            website—starting with a few helpful reads.
+            Weekly posts on care, staffing, and community updates. New website—starting with a few helpful reads.
           </p>
         </div>
       </section>

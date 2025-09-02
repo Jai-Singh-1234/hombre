@@ -55,18 +55,26 @@
           <!-- Desktop Navigation -->
           <nav class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
-              <a href="index.html" class="navbar-link">Home</a>
-              <a href="about.html" class="navbar-link text-primary font-medium"
-                >About</a
-              >
-              <a href="services.html" class="navbar-link">Services</a>
-              <a href="job-placement.html" class="navbar-link">Job Placement</a>
-              <a href="blog.html" class="navbar-link">Blog</a>
-              <a href="contact.html" class="navbar-link">Contact</a>
+              <a href="index.html" class="navbar-link" data-i18n="nav.home">Home</a>
+              <a href="about.html" class="navbar-link text-primary font-medium" data-i18n="nav.about">About</a>
+              <a href="services.html" class="navbar-link" data-i18n="nav.services">Services</a>
+              <a href="job-placement.html" class="navbar-link" data-i18n="nav.job">Job Placement</a>
+              <a href="blog.html" class="navbar-link" data-i18n="nav.blog">Blog</a>
+              <a href="contact.html" class="navbar-link" data-i18n="nav.contact">Contact</a>
             </div>
           </nav>
 
           <div class="flex items-center space-x-2">
+            <!-- Language Selector -->
+            <div class="hidden md:block">
+              <label class="sr-only" for="language-select">Language</label>
+              <select id="language-select" class="translate-select language-select" aria-label="Select language">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="pa">ਪੰਜਾਬੀ</option>
+              </select>
+            </div>
+
             <!-- Theme Toggle - Hidden on mobile, moved to mobile menu -->
             <button
               id="theme-toggle"
@@ -132,18 +140,16 @@
         <div
           class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700"
         >
-          <a href="index.html" class="mobile-navbar-link">Home</a>
+          <a href="index.html" class="mobile-navbar-link" data-i18n="nav.home">Home</a>
           <a
             href="about.html"
             class="mobile-navbar-link text-primary font-medium"
-            >About</a
+            data-i18n="nav.about">About</a
           >
-          <a href="services.html" class="mobile-navbar-link">Services</a>
-          <a href="job-placement.html" class="mobile-navbar-link"
-            >Job Placement</a
-          >
-          <a href="blog.html" class="mobile-navbar-link">Blog</a>
-          <a href="contact.html" class="mobile-navbar-link">Contact</a>
+          <a href="services.html" class="mobile-navbar-link" data-i18n="nav.services">Services</a>
+          <a href="job-placement.html" class="mobile-navbar-link" data-i18n="nav.job">Job Placement</a>
+          <a href="blog.html" class="mobile-navbar-link" data-i18n="nav.blog">Blog</a>
+          <a href="contact.html" class="mobile-navbar-link" data-i18n="nav.contact">Contact</a>
           <!-- Added theme toggle to mobile menu -->
           <div class="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
             <button
@@ -416,24 +422,16 @@
             <h4 class="font-semibold mb-4">Services</h4>
             <ul class="space-y-2 text-gray-300">
               <li>
-                <a href="services.html" class="hover:text-primary"
-                  >Nursing Care</a
-                >
+                <a href="services.html" class="hover:text-primary" data-i18n="footer.nursing">Nursing Care</a>
               </li>
               <li>
-                <a href="services.html" class="hover:text-primary"
-                  >Elderly Care</a
-                >
+                <a href="services.html" class="hover:text-primary" data-i18n="footer.elderly">Elderly Care</a>
               </li>
               <li>
-                <a href="services.html" class="hover:text-primary"
-                  >Baby Sitting</a
-                >
+                <a href="services.html" class="hover:text-primary" data-i18n="footer.baby">Baby Sitting</a>
               </li>
               <li>
-                <a href="job-placement.html" class="hover:text-primary"
-                  >Job Placement</a
-                >
+                <a href="job-placement.html" class="hover:text-primary" data-i18n="footer.job">Job Placement</a>
               </li>
             </ul>
           </div>
@@ -442,10 +440,10 @@
             <h4 class="font-semibold mb-4">Quick Links</h4>
             <ul class="space-y-2 text-gray-300">
               <li>
-                <a href="about.html" class="hover:text-primary">About Us</a>
+                <a href="about.html" class="hover:text-primary" data-i18n="footer.about">About Us</a>
               </li>
               <li>
-                <a href="contact.html" class="hover:text-primary">Contact</a>
+                <a href="contact.html" class="hover:text-primary" data-i18n="footer.contact">Contact</a>
               </li>
             </ul>
           </div>

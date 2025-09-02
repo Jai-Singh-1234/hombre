@@ -505,7 +505,11 @@ document.addEventListener("DOMContentLoaded", () => {
   new BackToTop()
   new PageTransition()
   new LanguageManager()
-  ensureTranslatorUI()
+  // Google Translate Initialization
+  ensureGadgetContainer()
+  relaxNoTranslate()
+  buildTranslatorUI()
+  loadGoogleTranslate().then(() => applySavedLanguageWhenReady())
 })
 
 // Close mobile menu when clicking outside
@@ -518,306 +522,227 @@ document.addEventListener("click", (e) => {
   }
 })
 
-function ensureTranslatorUI() {
-  const themeBtn = document.getElementById("theme-toggle")
-  if (!themeBtn || themeBtn.dataset.translateReady === "1") return
+// Expose Google Translate helper functions in module scope
+function ensureGadgetContainer() {
+  if (!document.getElementById("google_translate_element")) {
+    const div = document.createElement("div")
+    div.id = "google_translate_element"
+    document.body.appendChild(div)
+  }
+}
 
-  // Wrap theme button and translator for proper positioning
-  const container = themeBtn.parentElement // this is the flex container on desktop
-  if (!container) return
+function relaxNoTranslate() {
+  try {
+    // Make sure the whole document is allowed to translate
+    if (document.documentElement.getAttribute("translate") === "no") {
+      document.documentElement.setAttribute("translate", "yes")
+    }
+    // Remove meta notranslate if present
+    const badMeta = document.querySelector('meta[name="google"][content="notranslate"]')
+    if (badMeta) badMeta.parentNode.removeChild(badMeta)
+    // Remove .notranslate from content wrappers (keep on GT containers if any)
+    document.querySelectorAll(".notranslate").forEach((el) => {
+      if (!el.id || !el.id.startsWith("google_translate")) {
+        el.classList.remove("notranslate")
+      }
+    })
+  } catch {
+    // no-op
+  }
+}
 
-  // Build translator button + menu
-  const wrapper = document.createElement("div")
-  wrapper.className = "translate-wrapper ml-1"
+function loadGoogleTranslate() {
+  return new Promise((resolve) => {
+    if (window.google && window.google.translate) return resolve()
+    const gt = document.createElement("script")
+    gt.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+    window.googleTranslateElementInit = () => {
+      try {
+        // pageLanguage auto-detect; include all langs; do not auto-show banner
+        new window.google.translate.TranslateElement(
+          { pageLanguage: "auto", autoDisplay: false },
+          "google_translate_element",
+        )
+      } catch (e) {
+        // no-op
+      }
+      resolve()
+    }
+    document.head.appendChild(gt)
+  })
+}
+
+function selectLanguage(langCode) {
+  const combo = document.querySelector(".goog-te-combo")
+  if (!combo) return
+  combo.value = langCode // '' keeps Auto detect
+  combo.dispatchEvent(new Event("change"))
+  try {
+    localStorage.setItem("preferredLanguage", langCode || "")
+  } catch {}
+}
+
+function applySavedLanguageWhenReady() {
+  const saved = (localStorage.getItem("preferredLanguage") || "").trim()
+  // If nothing stored, nothing to apply
+  if (saved === null) return
+  const t = setInterval(() => {
+    const combo = document.querySelector(".goog-te-combo")
+    if (combo) {
+      clearInterval(t)
+      if (saved !== null) selectLanguage(saved)
+    }
+  }, 200)
+  setTimeout(() => clearInterval(t), 10000)
+}
+
+function buildTranslatorUI() {
+  const themeToggle = document.querySelector("[data-theme-toggle], #theme-toggle, .theme-toggle")
+  const wrapper = document.createElement("span")
+  wrapper.className = "translator-wrapper"
+  wrapper.setAttribute("role", "group")
 
   const btn = document.createElement("button")
-  btn.className = "translate-button"
-  btn.setAttribute("id", "translate-toggle")
-  btn.setAttribute("aria-haspopup", "true")
-  btn.setAttribute("aria-expanded", "false")
-  btn.setAttribute("title", "Translate")
-
-  // Inline SVG translate/globe icon
+  btn.type = "button"
+  btn.className = "translator-trigger"
+  btn.setAttribute("aria-label", "Translate page")
+  // Simple translate icon
   btn.innerHTML = `
-    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-        d="M3 12a9 9 0 1 0 18 0A9 9 0 0 0 3 12Z"/>
-      <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-        d="M2 12h20M12 2c2.5 3 2.5 19 0 20M4 7.5h16M4 16.5h16"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 5h16M4 12h8M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
   `
 
   const menu = document.createElement("div")
-  menu.className = "translate-menu"
+  menu.className = "translator-menu"
   menu.setAttribute("role", "menu")
-  menu.setAttribute("aria-label", "Select language")
 
-  // Search box for languages
   const search = document.createElement("input")
   search.type = "search"
   search.placeholder = "Search language..."
-  search.className = "translate-search"
-
+  search.className = "translator-search"
   menu.appendChild(search)
-  const divider = document.createElement("div")
-  divider.className = "translate-divider"
-  menu.appendChild(divider)
 
   const list = document.createElement("div")
   menu.appendChild(list)
 
+  // Broad language set (extend as needed)
+  const langs = [
+    ["Auto detect", ""],
+    ["English", "en"],
+    ["Spanish", "es"],
+    ["French", "fr"],
+    ["German", "de"],
+    ["Portuguese", "pt"],
+    ["Italian", "it"],
+    ["Dutch", "nl"],
+    ["Polish", "pl"],
+    ["Russian", "ru"],
+    ["Ukrainian", "uk"],
+    ["Arabic", "ar"],
+    ["Hebrew", "iw"],
+    ["Hindi", "hi"],
+    ["Urdu", "ur"],
+    ["Bengali", "bn"],
+    ["Gujarati", "gu"],
+    ["Punjabi", "pa"],
+    ["Marathi", "mr"],
+    ["Tamil", "ta"],
+    ["Telugu", "te"],
+    ["Kannada", "kn"],
+    ["Malayalam", "ml"],
+    ["Chinese (Simplified)", "zh-CN"],
+    ["Chinese (Traditional)", "zh-TW"],
+    ["Japanese", "ja"],
+    ["Korean", "ko"],
+    ["Turkish", "tr"],
+    ["Vietnamese", "vi"],
+    ["Thai", "th"],
+    ["Indonesian", "id"],
+    ["Malay", "ms"],
+    ["Greek", "el"],
+    ["Czech", "cs"],
+    ["Slovak", "sk"],
+    ["Hungarian", "hu"],
+    ["Romanian", "ro"],
+    ["Bulgarian", "bg"],
+    ["Swedish", "sv"],
+    ["Norwegian", "no"],
+    ["Danish", "da"],
+    ["Finnish", "fi"],
+    ["Filipino", "tl"],
+    ["Afrikaans", "af"],
+    ["Amharic", "am"],
+    ["Azerbaijani", "az"],
+    ["Basque", "eu"],
+    ["Belarusian", "be"],
+    ["Catalan", "ca"],
+    ["Croatian", "hr"],
+    ["Estonian", "et"],
+    ["Georgian", "ka"],
+    ["Hausa", "ha"],
+    ["Icelandic", "is"],
+    ["Irish", "ga"],
+    ["Latvian", "lv"],
+    ["Lithuanian", "lt"],
+    ["Macedonian", "mk"],
+    ["Maltese", "mt"],
+    ["Mongolian", "mn"],
+    ["Nepali", "ne"],
+    ["Persian", "fa"],
+    ["Serbian", "sr"],
+    ["Sinhala", "si"],
+    ["Slovenian", "sl"],
+    ["Swahili", "sw"],
+    ["Tajik", "tg"],
+    ["Tatar", "tt"],
+    ["Uzbek", "uz"],
+    ["Yoruba", "yo"],
+    ["Zulu", "zu"],
+  ]
+
+  const renderList = (filter = "") => {
+    list.innerHTML = ""
+    langs
+      .filter(([name]) => name.toLowerCase().includes(filter.toLowerCase()))
+      .forEach(([name, code]) => {
+        const item = document.createElement("button")
+        item.type = "button"
+        item.className = "translator-item"
+        item.textContent = name
+        item.setAttribute("data-lang", code)
+        item.addEventListener("click", () => {
+          selectLanguage(code)
+          menu.classList.remove("open")
+        })
+        list.appendChild(item)
+      })
+  }
+  renderList()
+  search.addEventListener("input", () => renderList(search.value))
+
   wrapper.appendChild(btn)
   wrapper.appendChild(menu)
 
-  // Insert AFTER theme toggle so it appears on the right side
-  if (themeBtn.nextSibling) {
-    container.insertBefore(wrapper, themeBtn.nextSibling)
+  if (themeToggle && themeToggle.parentNode) {
+    themeToggle.parentNode.insertBefore(wrapper, themeToggle.nextSibling)
   } else {
-    container.appendChild(wrapper)
-  }
-  themeBtn.dataset.translateReady = "1"
-
-  // Provide a broad language list (multi-language)
-  // ISO 639-1 codes supported by Google Translate
-  const LANGS = [
-    { code: "en", name: "English" },
-    { code: "hi", name: "हिन्दी (Hindi)" },
-    { code: "pa", name: "ਪੰਜਾਬੀ (Punjabi)" },
-    { code: "es", name: "Español (Spanish)" },
-    { code: "fr", name: "Français (French)" },
-    { code: "de", name: "Deutsch (German)" },
-    { code: "it", name: "Italiano (Italian)" },
-    { code: "pt", name: "Português (Portuguese)" },
-    { code: "ru", name: "Русский (Russian)" },
-    { code: "ar", name: "العربية (Arabic)" },
-    { code: "bn", name: "বাংলা (Bengali)" },
-    { code: "zh-CN", name: "中文(简体) (Chinese Simplified)" },
-    { code: "zh-TW", name: "中文(繁體) (Chinese Traditional)" },
-    { code: "ja", name: "日本語 (Japanese)" },
-    { code: "ko", name: "한국어 (Korean)" },
-    { code: "fa", name: "فارسی (Persian)" },
-    { code: "tr", name: "Türkçe (Turkish)" },
-    { code: "ta", name: "தமிழ் (Tamil)" },
-    { code: "te", name: "తెలుగు (Telugu)" },
-    { code: "mr", name: "मराठी (Marathi)" },
-    { code: "gu", name: "ગુજરાતી (Gujarati)" },
-    { code: "ur", name: "اردو (Urdu)" },
-    { code: "ne", name: "नेपाली (Nepali)" },
-    { code: "ml", name: "മലയാളം (Malayalam)" },
-    { code: "kn", name: "ಕನ್ನಡ (Kannada)" },
-    { code: "vi", name: "Tiếng Việt (Vietnamese)" },
-    { code: "th", name: "ไทย (Thai)" },
-    { code: "id", name: "Bahasa Indonesia" },
-    { code: "uk", name: "Українська (Ukrainian)" },
-    { code: "pl", name: "Polski (Polish)" },
-    { code: "nl", name: "Nederlands (Dutch)" },
-    { code: "sv", name: "Svenska (Swedish)" },
-    { code: "ro", name: "Română (Romanian)" },
-  ]
-
-  function renderList(filter = "") {
-    list.innerHTML = ""
-    const current = getCurrentLang()
-    LANGS.filter(
-      (l) => l.name.toLowerCase().includes(filter.toLowerCase()) || l.code.toLowerCase().includes(filter.toLowerCase()),
-    ).forEach((lang) => {
-      const item = document.createElement("button")
-      item.type = "button"
-      item.className = "translate-item"
-      item.setAttribute("role", "menuitem")
-      if (lang.code === current) item.setAttribute("aria-current", "true")
-      item.dataset.lang = lang.code
-      item.textContent = lang.name
-      item.addEventListener("click", () => {
-        setLanguage(lang.code)
-        closeMenu()
-      })
-      list.appendChild(item)
-    })
+    // Fallback if a theme toggle isn’t found
+    wrapper.style.position = "fixed"
+    wrapper.style.top = "12px"
+    wrapper.style.right = "12px"
+    document.body.appendChild(wrapper)
   }
 
-  function openMenu() {
-    menu.classList.add("open")
-    btn.setAttribute("aria-expanded", "true")
-    setTimeout(() => search.focus(), 0)
-  }
-  function closeMenu() {
-    menu.classList.remove("open")
-    btn.setAttribute("aria-expanded", "false")
-  }
-  function toggleMenu() {
-    if (menu.classList.contains("open")) closeMenu()
-    else openMenu()
-  }
-
-  btn.addEventListener("click", toggleMenu)
+  btn.addEventListener("click", () => menu.classList.toggle("open"))
   document.addEventListener("click", (e) => {
-    if (!wrapper.contains(e.target)) closeMenu()
+    if (!wrapper.contains(e.target)) menu.classList.remove("open")
   })
-  search.addEventListener("input", (e) => {
-    renderList(e.target.value || "")
-  })
-
-  renderList()
-
-  // Load Google Translate (hidden) and hook selection
-  initGoogleTranslate()
-
-  // Restore saved language
-  const saved = localStorage.getItem("selectedLang")
-  if (saved && saved !== "en") {
-    // Apply after widget is ready
-    const applySaved = () => {
-      if (document.querySelector("select.goog-te-combo")) {
-        setLanguage(saved)
-      } else {
-        setTimeout(applySaved, 200)
-      }
-    }
-    applySaved()
-  }
 }
 
-// Initialize on DOM ready and also after SPA-like transitions if any
-if (document.readyState === "complete" || document.readyState === "interactive") {
-  setTimeout(ensureTranslatorUI, 0)
-} else {
-  document.addEventListener("DOMContentLoaded", ensureTranslatorUI)
+window.hideGTRibbon = () => {
+  document.documentElement.removeAttribute("data-show-gt-banner")
 }
-
-// ========== Google Translate helpers ==========
-function initGoogleTranslate() {
-  if (window.__googleTranslateLoaded) return
-  window.__googleTranslateLoaded = true
-
-  // Hidden container
-  const hidden = document.createElement("div")
-  hidden.id = "google_translate_element"
-  hidden.style.position = "fixed"
-  hidden.style.top = "-9999px"
-  hidden.style.left = "-9999px"
-  hidden.style.opacity = "0"
-  document.body.appendChild(hidden)
-
-  // Global init callback
-  window.googleTranslateElementInit = () => {
-    try {
-      /* global google */
-      new window.google.translate.TranslateElement(
-        {
-          pageLanguage: "en",
-          autoDisplay: false,
-          // We intentionally do not pass includedLanguages to keep multi-language wide open
-        },
-        "google_translate_element",
-      )
-    } catch (e) {
-      // no-op
-    }
-  }
-
-  // Load script
-  const s = document.createElement("script")
-  s.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-  s.async = true
-  document.head.appendChild(s)
+window.showGTRibbon = () => {
+  document.documentElement.setAttribute("data-show-gt-banner", "true")
 }
-
-function getCurrentLang() {
-  try {
-    const sel = document.querySelector("select.goog-te-combo")
-    if (sel && sel.value) return sel.value
-  } catch {}
-  const cookieLang = (document.cookie.match(/(?:^|; )googtrans=([^;]*)/) || [])[1]
-  if (cookieLang) {
-    const parts = decodeURIComponent(cookieLang).split("/")
-    return parts[parts.length - 1] || "en"
-  }
-  return "en"
-}
-
-// Set both cookie and programmatically change the hidden Google select
-function setLanguage(lang) {
-  localStorage.setItem("selectedLang", lang)
-  setGoogTransCookie(lang)
-
-  const apply = () => {
-    const sel = document.querySelector("select.goog-te-combo")
-    if (sel) {
-      sel.value = lang
-      // dispatch change event
-      sel.dispatchEvent(new Event("change"))
-    } else {
-      // Try again shortly until widget is ready
-      setTimeout(apply, 200)
-    }
-  }
-  apply()
-}
-
-function setGoogTransCookie(lang) {
-  // Set cookies for the current domain and root domain to help Google Translate detect selection
-  const value1 = `/auto/${lang}`
-  const value2 = `/en/${lang}`
-  const domain = location.hostname
-  const root = "." + domain.split(".").slice(-2).join(".")
-
-  const opts = "path=/; max-age=31536000; SameSite=Lax"
-  document.cookie = `googtrans=${value1}; ${opts}`
-  document.cookie = `googtrans=${value1}; domain=${root}; ${opts}`
-  document.cookie = `googtrans=${value2}; ${opts}`
-  document.cookie = `googtrans=${value2}; domain=${root}; ${opts}`
-}
-
-// Also place a translator icon near the mobile theme toggle inside the menu (optional)
-function addMobileTranslator() {
-  const mobileToggle = document.getElementById("mobile-theme-toggle")
-  if (!mobileToggle || mobileToggle.dataset.translateReady === "1") return
-
-  const row = mobileToggle.parentElement
-  if (!row) return
-
-  const wrapper = document.createElement("div")
-  wrapper.className = "flex items-center justify-between mt-2"
-
-  const label = document.createElement("span")
-  label.textContent = "Translate"
-  label.className = "text-sm text-gray-600 dark:text-gray-300"
-
-  const btn = document.createElement("button")
-  btn.className = "translate-button"
-  btn.setAttribute("title", "Translate")
-  btn.innerHTML = `
-    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-        d="M3 12a9 9 0 1 0 18 0A9 9 0 0 0 3 12Z"/>
-      <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-        d="M2 12h20M12 2c2.5 3 2.5 19 0 20M4 7.5h16M4 16.5h16"/>
-    </svg>
-  `
-
-  btn.addEventListener("click", () => {
-    // Reuse desktop menu if present; otherwise open a minimal prompt
-    const desktopBtn = document.getElementById("translate-toggle")
-    if (desktopBtn) {
-      desktopBtn.click()
-    } else {
-      // fallback: quickly set a common language cycle
-      const next = getCurrentLang() === "en" ? "hi" : "en"
-      setLanguage(next)
-    }
-  })
-
-  wrapper.appendChild(label)
-  wrapper.appendChild(btn)
-  row.parentElement.appendChild(wrapper)
-  mobileToggle.dataset.translateReady = "1"
-}
-
-// Try to add mobile translator when mobile menu opens
-document.getElementById("mobile-menu-button")?.addEventListener("click", () => {
-  setTimeout(addMobileTranslator, 50)
-})
-
-// If mobile menu is visible on load (rare), try once
-setTimeout(addMobileTranslator, 300)
